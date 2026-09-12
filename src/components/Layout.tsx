@@ -15,6 +15,7 @@ const navigation = [
   { name: 'Vendas', href: '/sales', icon: ShoppingCart },
   { name: 'Caixa', href: '/cash', icon: ClipboardList },
   { name: 'Compras', href: '/purchases', icon: Truck },
+  { name: 'Transferências', href: '/transfers', icon: RefreshCw },
   { name: 'Financeiro', href: '/finance', icon: DollarSign },
   { name: 'Fiscal', href: '/fiscal', icon: FileOutput },
   { name: 'Clientes', href: '/customers', icon: Users },

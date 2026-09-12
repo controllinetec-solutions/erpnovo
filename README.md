@@ -26,12 +26,16 @@
 - ✅ **Produtos** - Cadastro completo com suporte a pesáveis
 - ✅ **Estoque** - Controle por loja, movimentações e inventário
 - ✅ **Vendas** - Histórico de vendas do PDV
+- ✅ **Caixa** - Abertura/fechamento, sangria, suprimento
+- ✅ **Compras** - Pedidos de compra, entrada de mercadoria
+- ✅ **Transferências** - Movimentação entre lojas
 - ✅ **Financeiro** - Contas a pagar/receber e fluxo de caixa
+- ✅ **Fiscal** - NFC-e, NF-e, cancelamento, contingência
 - ✅ **Clientes** - Cadastro e gestão de clientes
 - ✅ **Fornecedores** - Cadastro de fornecedores
 - ✅ **Monitor PDV** - Status dos terminais em tempo real
 - ✅ **Sincronização** - Controle de sync ERP ↔ PDV
-- ✅ **Relatórios** - Relatórios gerenciais
+- ✅ **Relatórios** - Relatórios gerenciais com exportação PDF/Excel
 - ✅ **Configurações** - Gestão do sistema
 - ✅ **Autenticação** - Login com controle de permissões
 
@@ -39,24 +43,42 @@
 
 ```
 ┌─────────────────────┐
-│   ERP CLOUD (React) │ ← Você está aqui
+│   ERP CLOUD (React) │ ← Frontend Web
 │   Frontend Web      │
 └──────────┬──────────┘
            │
      API REST
            │
 ┌──────────▼──────────┐
-│   Backend Node.js   │ ← Próximo passo
+│   Backend Node.js   │ ← Backend API
 │   PostgreSQL        │
 └──────────┬──────────┘
            │
      API PDV
            │
 ┌──────────▼──────────┐
-│   PDV Python        │ ← Integração futura
-│   Desktop Local     │
+│   PDV Python        │ ← Desktop Local
+│   + SDK Python      │
 └─────────────────────┘
 ```
+
+### SDK Python para PDV
+
+O projeto inclui um SDK Python completo para integração do PDV:
+
+```python
+from erp_lite_client import ERPLiteClient, Sale, SaleItem, Payment
+
+client = ERPLiteClient(
+    base_url="http://localhost:3001/api/v1",
+    terminal_token="seu-token"
+)
+
+client.authenticate(pdv_version="2.5.1")
+products = client.get_all_products()
+```
+
+Veja [pdv-python-sdk/](./pdv-python-sdk/) para documentação completa.
 
 ---
 

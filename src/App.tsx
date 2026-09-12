@@ -13,6 +13,7 @@ import Finance from './pages/Finance';
 import Fiscal from './pages/Fiscal';
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
+import Transfers from './pages/Transfers';
 import PDVMonitor from './pages/PDVMonitor';
 import Sync from './pages/Sync';
 import Reports from './pages/Reports';
@@ -73,6 +74,14 @@ function App() {
               element={
                 <ProtectedRoute requiredPermission="products.view">
                   <Purchases />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="transfers"
+              element={
+                <ProtectedRoute requiredPermission="stock.view">
+                  <Transfers />
                 </ProtectedRoute>
               }
             />

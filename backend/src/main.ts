@@ -7,14 +7,23 @@ import 'dotenv/config';
 
 import { authRouter } from './modules/auth/auth.routes.js';
 import { productsRouter } from './modules/products/products.routes.js';
-import {
-  salesRouter, stockRouter, customersRouter, suppliersRouter,
-  financeRouter, purchasesRouter, cashRouter, terminalsRouter,
-  dashboardRouter, fiscalRouter
-} from './modules/routes.js';
 import { pdvRouter } from './modules/pdv/pdv.routes.js';
 import { syncRouter } from './modules/sync/sync.routes.js';
 import { errorHandler } from './shared/errors/errorHandler.js';
+
+// Importar rotas consolidadas
+import {
+  salesRouter,
+  stockRouter,
+  customersRouter,
+  suppliersRouter,
+  financeRouter,
+  purchasesRouter,
+  cashRouter,
+  terminalsRouter,
+  dashboardRouter,
+  fiscalRouter,
+} from './modules/routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
