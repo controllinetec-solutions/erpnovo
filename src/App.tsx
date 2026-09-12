@@ -1,5 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Stock from './pages/Stock';
@@ -14,23 +17,102 @@ import Settings from './pages/Settings';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="products" element={<Products />} />
-          <Route path="stock" element={<Stock />} />
-          <Route path="sales" element={<Sales />} />
-          <Route path="finance" element={<Finance />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="suppliers" element={<Suppliers />} />
-          <Route path="pdv-monitor" element={<PDVMonitor />} />
-          <Route path="sync" element={<Sync />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rota pública - Login */}
+          <Route path="/login" element={<Login />} />
+
+          {/* Rotas protegidas */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route
+              path="products"
+              element={
+                <ProtectedRoute requiredPermission="products.view">
+                  <Products />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="stock"
+              element={
+                <ProtectedRoute requiredPermission="stock.view">
+                  <Stock />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="sales"
+              element={
+                <ProtectedRoute requiredPermission="sales.view">
+                  <Sales />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="finance"
+              element={
+                <ProtectedRoute requiredPermission="finance.view">
+                  <Finance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="customers"
+              element={
+                <ProtectedRoute requiredPermission="customers.view">
+                  <Customers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="suppliers"
+              element={
+                <ProtectedRoute requiredPermission="suppliers.view">
+                  <Suppliers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="pdv-monitor"
+              element={
+                <ProtectedRoute requiredPermission="pdv.monitor">
+                  <PDVMonitor />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="sync" element={<Sync />} />
+            <Route
+              path="reports"
+              element={
+                <ProtectedRoute requiredPermission="reports.view">
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="settings"
+              element={
+                <ProtectedRoute requiredPermission="settings.manage">
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Catch-all - redireciona para login ou dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

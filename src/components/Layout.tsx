@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Warehouse, ShoppingCart,
   DollarSign, Users, Truck, Monitor, RefreshCw,
   FileText, Settings, Menu, X, ChevronDown, Bell,
   Building2, LogOut
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -24,6 +25,15 @@ const navigation = [
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [companyMenuOpen, setCompanyMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
+  const userInitials = user?.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,24 +86,32 @@ export default function Layout() {
                   onClick={() => setCompanyMenuOpen(!companyMenuOpen)}
                 >
                   <div className="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-                    MS
+                    {userInitials}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <div className="font-medium">Mercado Silva</div>
-                    <div className="text-xs text-gray-500">Loja 01 - Centro</div>
+                    <div className="font-medium">{user?.name || 'Usuário'}</div>
+                    <div className="text-xs text-gray-500">{user?.storeName || 'Loja 01'}</div>
                   </div>
                   <ChevronDown className="h-4 w-4" />
                 </button>
                 {companyMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black/5 z-50">
                     <div className="py-1">
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <div className="text-sm font-medium text-gray-900">{user?.name}</div>
+                        <div className="text-xs text-gray-500">{user?.email}</div>
+                        <div className="text-xs text-emerald-600 font-medium mt-1 capitalize">{user?.role === 'admin' ? 'Administrador' : user?.role === 'manager' ? 'Gerente' : user?.role === 'operator' ? 'Operador' : 'Visualizador'}</div>
+                      </div>
                       <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">Trocar Loja</div>
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Loja 01 - Centro</button>
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Loja 02 - Bairro Norte</button>
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Loja 03 - Bairro Sul</button>
                       <hr className="my-1" />
-                      <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2">
-                        <LogOut className="h-4 w-4" /> Sair
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <LogOut className="h-4 w-4" /> Sair do Sistema
                       </button>
                     </div>
                   </div>
