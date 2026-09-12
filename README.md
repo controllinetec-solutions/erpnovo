@@ -84,10 +84,35 @@ Veja [pdv-python-sdk/](./pdv-python-sdk/) para documentação completa.
 
 ## 🚀 Quick Start
 
-### Opção 1: Script Automático (RECOMENDADO)
+### 📘 Guia Completo (RECOMENDADO PARA INICIANTES)
 
+📖 **[PASSO-A-PASSO.md](./PASSO-A-PASSO.md)** - Guia ultra detalhado, do zero ao sistema rodando
+
+### ⚡ Instalação Rápida
+
+**Passo 1: Verificar pré-requisitos**
 ```bash
-# Linux / macOS
+# Linux/Mac
+chmod +x scripts/check-prerequisites.sh
+./scripts/check-prerequisites.sh
+
+# Windows
+scripts\check-prerequisites.bat
+```
+
+**Passo 2: Instalar tudo**
+```bash
+# Linux/Mac
+chmod +x scripts/instalar.sh
+./scripts/instalar.sh
+
+# Windows
+scripts\instalar.bat
+```
+
+**Passo 3: Rodar o sistema**
+```bash
+# Linux/Mac
 chmod +x scripts/dev-all.sh
 ./scripts/dev-all.sh
 
@@ -95,18 +120,17 @@ chmod +x scripts/dev-all.sh
 scripts\dev-all.bat
 ```
 
-✅ Roda Frontend + Backend automaticamente!
+✅ **Pronto!** Acesse: **http://localhost:5173**
 
-### Opção 2: Manual (Terminais Separados)
+### 🎯 Outras Opções
 
-**Terminal 1 - Frontend:**
+**Terminais Separados:**
 ```bash
+# Terminal 1 - Frontend
 npm install
 npm run dev
-```
 
-**Terminal 2 - Backend:**
-```bash
+# Terminal 2 - Backend
 cd backend
 npm install
 npx prisma generate
@@ -115,21 +139,19 @@ npm run db:seed
 npm run dev
 ```
 
-### Opção 3: Docker (Tudo de Uma Vez)
-
+**Docker (Tudo de Uma Vez):**
 ```bash
 docker-compose up -d
 ```
 
-### Acessar
+### 📖 Documentação
 
-- **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:3001
-- **API**: http://localhost:3001/api/v1
+- 📘 **[PASSO-A-PASSO.md](./PASSO-A-PASSO.md)** - Guia completo do zero
+- 📗 **[COMO-RODAR.md](./COMO-RODAR.md)** - Como rodar frontend e backend
+- 📙 **[GUIA-RAPIDO.md](./GUIA-RAPIDO.md)** - Primeiros passos
+- 📕 **[docs/MANUAL-USUARIO.md](./docs/MANUAL-USUARIO.md)** - Manual do usuário
 
-📖 [Guia completo de como rodar](./COMO-RODAR.md)
-
-### Credenciais de Teste
+### 🔐 Credenciais de Teste
 
 | Perfil | E-mail | Senha |
 |--------|--------|-------|
