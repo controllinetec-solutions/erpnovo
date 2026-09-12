@@ -1,0 +1,11 @@
+// Re-exportar rotas do arquivo consolidado
+export { salesRouter } from '../routes.js';
+export { stockRouter } from '../routes.js';
+export { customersRouter } from '../routes.js';
+export { suppliersRouter } from '../routes.js';
+export { financeRouter } from '../routes.js';
+export { purchasesRouter } from '../routes.js';
+export { cashRouter } from '../routes.js';
+export { terminalsRouter } from '../routes.js';
+export { dashboardRouter } from '../routes.js';
+export { fiscalRouter } from '../routes.js';

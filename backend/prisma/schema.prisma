@@ -1,0 +1,646 @@
+// Schema do banco de dados ERP Lite
+// PostgreSQL + Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MULTI-TENANCY
+// ============================================
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  plan      String   @default("lite") // lite, pro, enterprise
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companies Company[]
+  
+  @@map("tenants")
+}
+
+// ============================================
+// EMPRESA E FILIAIS
+// ============================================
+
+model Company {
+  id                String   @id @default(uuid())
+  tenantId          String
+  name              String
+  tradeName         String
+  document          String   @unique // CNPJ
+  stateRegistration String?
+  municipalRegistration String?
+  address           String
+  city              String
+  state             String
+  zipCode           String
+  phone             String
+  email             String
+  segment           String   // mercado, padaria, hortifruti, mercearia
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  stores    Store[]
+  users     User[]
+  
+  @@map("companies")
+}
+
+model Store {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  code      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  phone     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company    Company     @relation(fields: [companyId], references: [id])
+  users      User[]
+  products   Product[]
+  terminals  Terminal[]
+  stockItems StockItem[]
+  
+  @@unique([companyId, code])
+  @@map("stores")
+}
+
+// ============================================
+// USUÁRIOS E PERMISSÕES
+// ============================================
+
+model User {
+  id           String    @id @default(uuid())
+  companyId    String
+  storeId      String
+  name         String
+  email        String
+  passwordHash String
+  role         UserRole  @default(OPERATOR)
+  permissions  String[]  // Array de permissões granulares
+  active       Boolean   @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+  store   Store   @relation(fields: [storeId], references: [id])
+  
+  @@unique([companyId, email])
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
+// ============================================
+// PRODUTOS
+// ============================================
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+  
+  @@map("categories")
+}
+
+model Brand {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+  
+  @@map("brands")
+}
+
+model Product {
+  id               String        @id @default(uuid())
+  storeId          String
+  code             String
+  barcode          String?       @unique
+  description      String
+  shortDescription String
+  categoryId       String
+  brandId          String?
+  unit             String        // UN, KG, G, L, ML, CX, PCT, FD
+  ncm              String
+  cest             String?
+  icmsCst          String        @default("00")
+  costPrice        Decimal       @db.Decimal(10, 2)
+  salePrice        Decimal       @db.Decimal(10, 2)
+  margin           Decimal       @db.Decimal(5, 2)
+  minStock         Int           @default(0)
+  maxStock         Int?
+  isWeighable      Boolean       @default(false)
+  scaleCode        Int?          // Código da balança
+  status           ProductStatus @default(ACTIVE)
+  version          Int           @default(1) // Para sincronização incremental
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?     // Soft delete
+
+  store      Store      @relation(fields: [storeId], references: [id])
+  category   Category   @relation(fields: [categoryId], references: [id])
+  brand      Brand?     @relation(fields: [brandId], references: [id])
+  stockItems StockItem[]
+  saleItems  SaleItem[]
+  
+  @@unique([storeId, code])
+  @@index([barcode])
+  @@index([status])
+  @@index([updatedAt])
+  @@map("products")
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ============================================
+// ESTOQUE
+// ============================================
+
+model StockItem {
+  id        String   @id @default(uuid())
+  storeId   String
+  productId String
+  quantity  Decimal  @db.Decimal(10, 3)
+  updatedAt DateTime @updatedAt
+
+  store    Store    @relation(fields: [storeId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+  movements StockMovement[]
+  
+  @@unique([storeId, productId])
+  @@map("stock_items")
+}
+
+model StockMovement {
+  id          String          @id @default(uuid())
+  stockItemId String
+  type        StockMovementType
+  quantity    Decimal         @db.Decimal(10, 3)
+  previousQty Decimal         @db.Decimal(10, 3)
+  newQty      Decimal         @db.Decimal(10, 3)
+  unitCost    Decimal?        @db.Decimal(10, 2)
+  origin      String          // Descrição da origem
+  referenceId String?         // ID do documento relacionado (venda, compra, etc)
+  userId      String?
+  createdAt   DateTime        @default(now())
+
+  stockItem StockItem @relation(fields: [stockItemId], references: [id])
+  
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+enum StockMovementType {
+  ENTRY_PURCHASE    // Entrada por compra
+  ENTRY_ADJUSTMENT  // Ajuste positivo
+  ENTRY_RETURN      // Devolução de cliente
+  ENTRY_TRANSFER    // Transferência entre lojas
+  EXIT_SALE         // Saída por venda
+  EXIT_ADJUSTMENT   // Ajuste negativo (perda/quebra)
+  EXIT_TRANSFER     // Transferência para outra loja
+}
+
+// ============================================
+// VENDAS
+// ============================================
+
+model Sale {
+  id          String     @id @default(uuid())
+  saleId      String     @unique // UUID do PDV (idempotência)
+  storeId     String
+  terminalId  String
+  operatorId  String
+  customerId  String?
+  date        DateTime
+  subtotal    Decimal    @db.Decimal(10, 2)
+  discount    Decimal    @default(0) @db.Decimal(10, 2)
+  total       Decimal    @db.Decimal(10, 2)
+  status      SaleStatus @default(COMPLETED)
+  fiscalDocId String?    // ID do documento fiscal
+  synced      Boolean    @default(false)
+  syncDate    DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  items    SaleItem[]
+  payments SalePayment[]
+  
+  @@index([date])
+  @@index([storeId, date])
+  @@index([synced])
+  @@map("sales")
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
+}
+
+model SaleItem {
+  id          String  @id @default(uuid())
+  saleId      String
+  productId   String
+  description String
+  barcode     String?
+  quantity    Decimal @db.Decimal(10, 3)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  discount    Decimal @default(0) @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+  isWeighable Boolean @default(false)
+  weight      Decimal? @db.Decimal(10, 3)
+
+  sale    Sale    @relation(fields: [saleId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  
+  @@map("sale_items")
+}
+
+model SalePayment {
+  id        String      @id @default(uuid())
+  saleId    String
+  type      PaymentType
+  amount    Decimal     @db.Decimal(10, 2)
+  reference String?     // NSU, autorização, etc
+  
+  sale Sale @relation(fields: [saleId], references: [id])
+  
+  @@map("sale_payments")
+}
+
+enum PaymentType {
+  DINHEIRO
+  PIX
+  DEBITO
+  CREDITO
+  VALE
+  OUTROS
+}
+
+// ============================================
+// CAIXA
+// ============================================
+
+model CashRegister {
+  id             String         @id @default(uuid())
+  terminalId     String
+  operatorId     String
+  openingDate    DateTime
+  closingDate    DateTime?
+  openingValue   Decimal        @db.Decimal(10, 2)
+  closingValue   Decimal?       @db.Decimal(10, 2)
+  totalSales     Decimal        @default(0) @db.Decimal(10, 2)
+  totalWithdrawals Decimal      @default(0) @db.Decimal(10, 2)
+  totalSupplies  Decimal        @default(0) @db.Decimal(10, 2)
+  status         CashStatus     @default(OPEN)
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  movements CashMovement[]
+  
+  @@map("cash_registers")
+}
+
+enum CashStatus {
+  OPEN
+  CLOSED
+}
+
+model CashMovement {
+  id             String           @id @default(uuid())
+  cashRegisterId String
+  type           CashMovementType
+  value          Decimal          @db.Decimal(10, 2)
+  description    String
+  paymentType    PaymentType?
+  createdAt      DateTime         @default(now())
+
+  cashRegister CashRegister @relation(fields: [cashRegisterId], references: [id])
+  
+  @@map("cash_movements")
+}
+
+enum CashMovementType {
+  OPENING
+  CLOSING
+  WITHDRAWAL  // Sangria
+  SUPPLY      // Suprimento
+  SALE
+}
+
+// ============================================
+// CLIENTES E FORNECEDORES
+// ============================================
+
+model Customer {
+  id             String   @id @default(uuid())
+  companyId      String
+  name           String
+  document       String?  // CPF/CNPJ
+  documentType   String?  // CPF, CNPJ
+  phone          String?
+  email          String?
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  totalPurchases Decimal  @default(0) @db.Decimal(10, 2)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([companyId, document])
+  @@map("customers")
+}
+
+model Supplier {
+  id             String   @id @default(uuid())
+  companyId      String
+  name           String
+  tradeName      String?
+  document       String   @unique // CNPJ/CPF
+  documentType   String   // CNPJ, CPF
+  stateRegistration String?
+  phone          String?
+  email          String?
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  purchaseOrders PurchaseOrder[]
+  
+  @@map("suppliers")
+}
+
+// ============================================
+// COMPRAS
+// ============================================
+
+model PurchaseOrder {
+  id              String          @id @default(uuid())
+  companyId       String
+  supplierId      String
+  storeId         String
+  number          String
+  date            DateTime
+  expectedDelivery DateTime
+  receivedDate    DateTime?
+  total           Decimal         @db.Decimal(10, 2)
+  status          PurchaseStatus  @default(DRAFT)
+  paymentTerms    String
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  supplier Supplier        @relation(fields: [supplierId], references: [id])
+  items    PurchaseItem[]
+  
+  @@unique([companyId, number])
+  @@map("purchase_orders")
+}
+
+enum PurchaseStatus {
+  DRAFT
+  CONFIRMED
+  PARTIAL
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseItem {
+  id             String  @id @default(uuid())
+  purchaseOrderId String
+  productId      String
+  quantity       Decimal @db.Decimal(10, 3)
+  unitCost       Decimal @db.Decimal(10, 2)
+  total          Decimal @db.Decimal(10, 2)
+  received       Decimal @default(0) @db.Decimal(10, 3)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  
+  @@map("purchase_items")
+}
+
+// ============================================
+// FINANCEIRO
+// ============================================
+
+model FinancialEntry {
+  id          String             @id @default(uuid())
+  companyId   String
+  type        FinancialEntryType
+  category    String             // Descrição da categoria
+  description String
+  entityId    String?            // ID do fornecedor ou cliente
+  entityName  String
+  document    String?            // NF, boleto, etc
+  dueDate     DateTime
+  value       Decimal            @db.Decimal(10, 2)
+  paidValue   Decimal            @default(0) @db.Decimal(10, 2)
+  discount    Decimal            @default(0) @db.Decimal(10, 2)
+  interest    Decimal            @default(0) @db.Decimal(10, 2)
+  status      FinancialStatus    @default(PENDING)
+  paidDate    DateTime?
+  notes       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  @@index([companyId, dueDate])
+  @@index([status])
+  @@map("financial_entries")
+}
+
+enum FinancialEntryType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum FinancialStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ============================================
+// TERMINAIS PDV
+// ============================================
+
+model Terminal {
+  id           String         @id @default(uuid())
+  storeId      String
+  name         String
+  token        String         @unique
+  status       TerminalStatus @default(OFFLINE)
+  pdvVersion   String?
+  lastSync     DateTime?
+  lastAccess   DateTime?
+  syncCursor   String?        // Cursor para sincronização incremental
+  config       Json?          // Configurações específicas do terminal
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+  
+  @@map("terminals")
+}
+
+enum TerminalStatus {
+  ONLINE
+  OFFLINE
+  SYNCING
+  ERROR
+}
+
+// ============================================
+// FILA DE SINCRONIZAÇÃO
+// ============================================
+
+model SyncQueue {
+  id           String       @id @default(uuid())
+  uuid         String       @unique
+  entity       String       // products, sales, customers, etc
+  entityId     String
+  operation    String       // CREATE, UPDATE, DELETE
+  payload      Json
+  status       SyncStatus   @default(PENDING)
+  attempts     Int          @default(0)
+  lastAttempt  DateTime?
+  errorMessage String?
+  createdAt    DateTime     @default(now())
+  processedAt  DateTime?
+  
+  @@index([status])
+  @@index([entity, entityId])
+  @@map("sync_queue")
+}
+
+enum SyncStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  ERROR
+}
+
+// ============================================
+// DOCUMENTOS FISCAIS
+// ============================================
+
+model FiscalDocument {
+  id            String         @id @default(uuid())
+  companyId     String
+  saleId        String?
+  type          FiscalDocType  // NFCe, NFe
+  model         String         // 55 (NFe), 65 (NFCe)
+  series        String
+  number        String
+  accessKey     String         @unique
+  authorization String?        // Protocolo de autorização
+  environment   String         // production, homologation
+  status        FiscalStatus   @default(PENDING)
+  xml           String?
+  danfe         String?
+  cancellationReason String?
+  contingencyMode Boolean      @default(false)
+  issuedAt      DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@index([companyId, number])
+  @@index([status])
+  @@map("fiscal_documents")
+}
+
+enum FiscalDocType {
+  NFCE
+  NFE
+}
+
+enum FiscalStatus {
+  PENDING
+  AUTHORIZED
+  CANCELLED
+  DENIED
+  CONTINGENCY
+  UNUSED
+}
+
+// ============================================
+// AUDITORIA
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String
+  userId    String?
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
+  entity    String   // products, sales, etc
+  entityId  String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  @@index([companyId, createdAt])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ============================================
+// CONFLITOS DE SINCRONIZAÇÃO
+// ============================================
+
+model SyncConflict {
+  id          String   @id @default(uuid())
+  entity      String
+  entityId    String
+  serverValue Json
+  clientValue Json
+  resolved    Boolean  @default(false)
+  resolvedBy  String?  // 'server' ou 'client' ou userId
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([resolved])
+  @@map("sync_conflicts")
+}
