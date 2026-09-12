@@ -7,7 +7,10 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Stock from './pages/Stock';
 import Sales from './pages/Sales';
+import Cash from './pages/Cash';
+import Purchases from './pages/Purchases';
 import Finance from './pages/Finance';
+import Fiscal from './pages/Fiscal';
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
 import PDVMonitor from './pages/PDVMonitor';
@@ -58,10 +61,34 @@ function App() {
               }
             />
             <Route
+              path="cash"
+              element={
+                <ProtectedRoute requiredPermission="sales.view">
+                  <Cash />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="purchases"
+              element={
+                <ProtectedRoute requiredPermission="products.view">
+                  <Purchases />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="finance"
               element={
                 <ProtectedRoute requiredPermission="finance.view">
                   <Finance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="fiscal"
+              element={
+                <ProtectedRoute requiredPermission="sales.view">
+                  <Fiscal />
                 </ProtectedRoute>
               }
             />

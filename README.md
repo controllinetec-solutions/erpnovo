@@ -1,6 +1,15 @@
 # ERP Lite - Sistema de Gestão para Varejo Alimentar
 
-Sistema ERP completo para mercados, padarias, hortifrútis e mercearias. Desenvolvido com React, TypeScript e Tailwind CSS, com arquitetura preparada para integração com backend Node.js + PostgreSQL e PDV Python.
+> **Sistema ERP completo para mercados, padarias, hortifrútis e mercearias.**
+> Desenvolvido com React + TypeScript no frontend e Node.js + PostgreSQL no backend.
+> Integração nativa com PDV Python via API REST.
+
+![Status](https://img.shields.io/badge/Status-Completo-emerald)
+![React](https://img.shields.io/badge/React-18-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Node.js](https://img.shields.io/badge/Node.js-20-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 
 ![ERP Lite](https://img.shields.io/badge/ERP-Lite-emerald?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
@@ -326,6 +335,18 @@ COPY --from=0 /app/dist /usr/share/nginx/html
 3. Commit suas mudanças (`git commit -m 'Add nova feature'`)
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
+
+---
+
+## 📚 Documentação Completa
+
+| Documento | Descrição |
+|-----------|-----------|
+| [📘 Manual do Desenvolvedor](./docs/MANUAL-DESENVOLVEDOR.md) | Arquitetura, API, banco de dados |
+| [📖 Manual do Usuário](./docs/MANUAL-USUARIO.md) | Como usar o sistema |
+| [🔌 Guia de Integração](./INTEGRACAO.md) | Integração com PDV Python |
+| [🚀 Guia de Deploy](./docs/GUIA-DEPLOY.md) | Deploy em produção |
+| [⚡ Guia Rápido](./GUIA-RAPIDO.md) | Primeiros passos |
 
 ---
 

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, Warehouse, ShoppingCart,
   DollarSign, Users, Truck, Monitor, RefreshCw,
   FileText, Settings, Menu, X, ChevronDown, Bell,
-  Building2, LogOut
+  Building2, LogOut, FileOutput, ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -13,7 +13,10 @@ const navigation = [
   { name: 'Produtos', href: '/products', icon: Package },
   { name: 'Estoque', href: '/stock', icon: Warehouse },
   { name: 'Vendas', href: '/sales', icon: ShoppingCart },
+  { name: 'Caixa', href: '/cash', icon: ClipboardList },
+  { name: 'Compras', href: '/purchases', icon: Truck },
   { name: 'Financeiro', href: '/finance', icon: DollarSign },
+  { name: 'Fiscal', href: '/fiscal', icon: FileOutput },
   { name: 'Clientes', href: '/customers', icon: Users },
   { name: 'Fornecedores', href: '/suppliers', icon: Truck },
   { name: 'Monitor PDV', href: '/pdv-monitor', icon: Monitor },
