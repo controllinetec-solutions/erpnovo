@@ -84,26 +84,50 @@ Veja [pdv-python-sdk/](./pdv-python-sdk/) para documentação completa.
 
 ## 🚀 Quick Start
 
-### Pré-requisitos
-
-- Node.js 18+
-- npm ou yarn
-
-### Instalação
+### Opção 1: Script Automático (RECOMENDADO)
 
 ```bash
-# Clonar o repositório
-git clone <url-do-repositorio>
-cd erp-lite
+# Linux / macOS
+chmod +x scripts/dev-all.sh
+./scripts/dev-all.sh
 
-# Instalar dependências
+# Windows
+scripts\dev-all.bat
+```
+
+✅ Roda Frontend + Backend automaticamente!
+
+### Opção 2: Manual (Terminais Separados)
+
+**Terminal 1 - Frontend:**
+```bash
 npm install
-
-# Rodar em modo desenvolvimento
 npm run dev
 ```
 
-Acesse: **http://localhost:5173**
+**Terminal 2 - Backend:**
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+npm run db:seed
+npm run dev
+```
+
+### Opção 3: Docker (Tudo de Uma Vez)
+
+```bash
+docker-compose up -d
+```
+
+### Acessar
+
+- **Frontend**: http://localhost:5173
+- **Backend**: http://localhost:3001
+- **API**: http://localhost:3001/api/v1
+
+📖 [Guia completo de como rodar](./COMO-RODAR.md)
 
 ### Credenciais de Teste
 
