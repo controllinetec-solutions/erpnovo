@@ -11,20 +11,6 @@ import { pdvRouter } from './modules/pdv/pdv.routes.js';
 import { syncRouter } from './modules/sync/sync.routes.js';
 import { errorHandler } from './shared/errors/errorHandler.js';
 
-// Importar rotas consolidadas
-import {
-  salesRouter,
-  stockRouter,
-  customersRouter,
-  suppliersRouter,
-  financeRouter,
-  purchasesRouter,
-  cashRouter,
-  terminalsRouter,
-  dashboardRouter,
-  fiscalRouter,
-} from './modules/routes.js';
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -71,18 +57,8 @@ const API_PREFIX = '/api/v1';
 // Autenticação
 app.use(`${API_PREFIX}/auth`, authRouter);
 
-// Módulos administrativos
+// Módulos principais
 app.use(`${API_PREFIX}/products`, productsRouter);
-app.use(`${API_PREFIX}/sales`, salesRouter);
-app.use(`${API_PREFIX}/stock`, stockRouter);
-app.use(`${API_PREFIX}/customers`, customersRouter);
-app.use(`${API_PREFIX}/suppliers`, suppliersRouter);
-app.use(`${API_PREFIX}/finance`, financeRouter);
-app.use(`${API_PREFIX}/purchases`, purchasesRouter);
-app.use(`${API_PREFIX}/cash`, cashRouter);
-app.use(`${API_PREFIX}/terminals`, terminalsRouter);
-app.use(`${API_PREFIX}/dashboard`, dashboardRouter);
-app.use(`${API_PREFIX}/fiscal`, fiscalRouter);
 
 // Integração PDV
 app.use(`${API_PREFIX}/pdv`, pdvRouter);
