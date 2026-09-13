@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # BACKEND PYTHON - FastAPI
+  # ============================================
+  backend-python:
+    build:
+      context: ./backend-python
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql://erp_user:erp_password@postgres:5432/erp_lite
+      - SECRET_KEY=change-this-secret-in-production-min-32-chars
+      - FRONTEND_URL=http://localhost
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - erp-network
+    restart: unless-stopped
+
+  # ============================================
+  # FRONTEND - React + Vite
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-python
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+    networks:
+      - erp-network
+
+  # ============================================
+  # DATABASE - PostgreSQL
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=erp_user
+      - POSTGRES_PASSWORD=erp_password
+      - POSTGRES_DB=erp_lite
+    volumes:
+      - postgres_python_/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp_user -d erp_lite"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - erp-network
+
+  # ============================================
+  # PGADMIN - Interface de administração
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@erplite.com.br
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    depends_on:
+      - postgres
+    networks:
+      - erp-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_python_
+
+networks:
+  erp-network:
+    driver: bridge

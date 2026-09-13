@@ -12,7 +12,8 @@ from app.core.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
-    decode_token
+    decode_token,
+    get_current_user
 )
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, RefreshTokenRequest
@@ -175,16 +176,34 @@ async def logout():
 
 @router.get("/me")
 async def get_current_user_info(
+    current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Obter informações do usuário atual
+    Obter informações do usuário atual autenticado
     """
-    # Este endpoint requer autenticação
-    # A autenticação é feita via middleware ou dependency
+    # Buscar dados da loja e empresa
+    from app.models.company import Store, Company
+    
+    store_result = await db.execute(select(Store).where(Store.id == current_user.store_id))
+    store = store_result.scalar_one()
+    
+    company_result = await db.execute(select(Company).where(Company.id == current_user.company_id))
+    company = company_result.scalar_one()
+    
     return {
         "success": True,
         "data": {
-            "message": "Endpoint requer autenticação"
+            "id": current_user.id,
+            "name": current_user.name,
+            "email": current_user.email,
+            "role": current_user.role.lower(),
+            "storeId": current_user.store_id,
+            "storeName": store.name,
+            "companyId": current_user.company_id,
+            "companyName": company.name,
+            "permissions": current_user.permissions,
+            "active": current_user.active,
+            "lastLogin": current_user.last_login.isoformat() if current_user.last_login else None
         }
     }
