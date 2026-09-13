@@ -118,6 +118,11 @@ export const authService = {
    * Login com dados mock
    */
   async loginMock(credentials: LoginCredentials): Promise<LoginResponse> {
+    // Se USE_MOCK_DATA for false, usar API real
+    if (!USE_MOCK_DATA) {
+      return this.loginReal(credentials);
+    }
+
     // Simula delay de rede
     await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -149,6 +154,22 @@ export const authService = {
     localStorage.setItem('erp_user', JSON.stringify(response.user));
 
     return response;
+  },
+
+  /**
+   * Login real com backend
+   */
+  async loginReal(credentials: LoginCredentials): Promise<LoginResponse> {
+    const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.error?.message || 'Erro ao realizar login');
+    }
+
+    this.saveTokens(response.data.tokens);
+    localStorage.setItem('erp_user', JSON.stringify(response.data.user));
+
+    return response.data;
   },
 
   /**
